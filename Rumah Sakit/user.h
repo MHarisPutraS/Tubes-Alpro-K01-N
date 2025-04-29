@@ -2,11 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef struct {
-    Identitas User;
-    KondisiPasien User;
-} User;
-
 typedef enum{
     Pasien,
     Dokter,
@@ -45,3 +40,8 @@ typedef struct {
     int trombosit;
 
 } KondisiPasien;
+
+typedef struct {
+    Identitas identitas;
+    KondisiPasien kondisi;
+} User;
