@@ -3,24 +3,23 @@
 #include <string.h>
 
 typedef enum{
-    Pasien,
-    Dokter,
-    Manager
+    PASIEN=1,
+    DOKTER,
+    MANAGER
 } Role;
 
 typedef enum{
-    Sehat,
-    Influenza,
+    INFLUENZA=1,
     COVID19,
-    Hipertensi,
-    DiabetesMellitus,
-    Anemia
+    HIPERTENSI,
+    DIABETESMELLITUS,
+    ANEMIA
 } RiwayatPenyakit;
 
 typedef struct {
     int id;
-    int username;
-    int password;
+    char username[50];
+    char password[50];
     Role role;
     RiwayatPenyakit riwayat;
     
