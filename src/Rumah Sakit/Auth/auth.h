@@ -14,6 +14,10 @@ typedef enum{
 
 #define MAX_USER 100
 #define MAX_LINE_LEN 1024
+#define MAX_FIELD 50
+#define MAX_COL_LEN 100
+
+typedef void (*CSVRowHandler)(char fields[][MAX_COL_LEN],int count,void *target);
 
 typedef struct {
     int id;
@@ -44,6 +48,10 @@ typedef struct {
     KondisiPasien kondisi;
 } User;
 
+typedef struct {
+    User *arr;
+    int *jumlah;
+} ParseTarget;
 
 void labelRS();
 // Berisi label besar "RS K01-N" sebagai user interface
@@ -54,9 +62,17 @@ void labelMenu();
 void labelInput(Pilihan *pilihan);
 // Menampilkan menu dan input sebagai UI utama
 
-void login(User users[],int *jumlah_user);
+void login(User users[]);
 // Procedure untuk login
 
-void UserCSVtoArr(User users[], int *jumlah_user);
+void registerpasien(User **users,int *jumlah_user);
+
+void ArrtoCSV(const char *filename, CSVRowHandler handler, void *target);
+
+void writeUsersToFile(char fields[][MAX_COL_LEN], int count, void *target); 
+
+void CSVtoArr(const char *filename, CSVRowHandler handler, void *target);
+
+void handleUserRow(char fields[][MAX_COL_LEN], int count, void *target);
 
 #endif

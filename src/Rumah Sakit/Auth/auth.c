@@ -62,7 +62,7 @@ void labelInput(Pilihan *pilihan){
         printf("\n>>> %s\n\n", opsi[*pilihan]);
 }
 
-void login(User users[],int *jumlah_user){
+void login(User users[]){
     User user;int valid=0; char nama[50],role[50];
 
     printf("Username: ");
@@ -70,78 +70,172 @@ void login(User users[],int *jumlah_user){
     strcpy(nama,user.identitas.username);
     printf("Password: ");
     scanf("%s", user.identitas.password);
-    for (int i = 0; i < *jumlah_user; i++) {
-        if (strcmp(users[i].identitas.username, user.identitas.username) == 0 &&
-            strcmp(users[i].identitas.password, user.identitas.password) == 0) {
+    for (int i = 0; i < MAX_USER; i++) {
+        if (strcmp(users[i].identitas.username, user.identitas.username) == 0) {
+            if (strcmp(users[i].identitas.password, user.identitas.password) == 0) {
             valid = 1; 
             strcpy(role,users[i].identitas.role);
             break;
+            }else{
+                printf("\nUsername atau password salah untuk pengguna yang bernama %s!\n\n",nama);
+                valid = -1;
+            }
         }
     }
 
     if (!valid) {
         printf("\nTidak ada Manager, Dokter, atau pun Pasien yang bernama %s!\n\n",nama);
     }
-    else
+    else if(valid==1)
     {if(strcmpi(role,"pasien")==0){
         printf("\nSelamat pagi %s! Ada keluhan apa?\n\n",nama);
     }else{
     printf("\nSelamat pagi %s %s! \n\n",role,nama);}}
 }
 
-void UserCSVtoArr(User users[], int *jumlah_user){
-    FILE *file = fopen("../../../data/user.csv", "r");
+void registerpasien(User **users,int *jumlah_user){
+    User user;int format,valid=1;
+    
+    do{
+    format=1;
+    printf("Username: ");
+    scanf("%s", user.identitas.username);
+    for (int i = 0; user.identitas.username[i] != '\0'; i++) {
+        char c = user.identitas.username[i];
+        if (!((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z'))){
+            format = 0;
+            printf("Format username hanya boleh huruf! Ulangi\n");
+            break;
+        }
+    }
+    }while(!format);
 
+    for(int i=0;i<*jumlah_user;i++){
+        if(strcmpi((*users)[i].identitas.username,user.identitas.username)==0){
+            valid=0;
+        }
+    }
+
+    if(!valid){
+        printf("Registrasi gagal! Pasien dengan nama %s sudah terdaftar.",user.identitas.username);
+    }else{
+        *users = (User *)realloc(*users,(*jumlah_user+1) * sizeof(User));
+        if(*users==NULL){
+            perror("gagal membuat array");
+            exit(1);
+        }else{
+            printf("Password: ");
+            scanf("%s", user.identitas.password);
+            strcpy((*users)[*jumlah_user].identitas.username,user.identitas.username);
+            strcpy((*users)[*jumlah_user].identitas.password,user.identitas.password);
+            strcpy((*users)[*jumlah_user].identitas.role,"pasien");
+            (*jumlah_user)++;
+            ArrtoCSV("../../../data/user.csv",writeUsersToFile,NULL);
+            printf("Pasien %s berhasil ditambahkan!\n",user.identitas.username);
+        }
+    }
+}
+
+void ArrtoCSV(const char *filename, CSVRowHandler handler, void *target){
+    FILE *file = fopen(filename, "w");
+    if (!file) {
+        perror("Gagal membuka file");
+        exit(1);
+    }
+
+    handler(NULL, -1, file);
+
+    fclose(file);
+}
+
+void writeUsersToFile(char fields[][MAX_COL_LEN], int count, void *target) {
+    FILE *file = (FILE *)target;
+    
+    // HEADER
+    if (count == -1) {
+        fprintf(file, "id,username,password,role,riwayat_penyakit,suhu_tubuh,tekanan_darah_sistolik,tekanan_darah_diastolik,detak_jantung,saturasi_oksigen,kadar_gula_darah,berat_badan,tinggi_badan,kadar_kolesterol,kadar_kolesterol_ldl,trombosit\n");
+        
+        extern User *users;
+        extern int jumlah_user;
+
+        for (int i = 0; i < jumlah_user; i++) {
+            // Tulis setiap baris User
+            fprintf(file, "%d,%s,%s,%s,%s,%f,%d,%d,%d,%f,%d,%f,%d,%d\n",
+            i+1,
+            users[i].identitas.username,
+            users[i].identitas.password,
+            users[i].identitas.role,
+            users[i].identitas.riwayat_penyakit,
+            users[i].kondisi.suhu_tubuh,
+            users[i].kondisi.tekanan_darah_sistolik,
+            users[i].kondisi.tekanan_darah_diastolik,
+            users[i].kondisi.detak_jantung,
+            users[i].kondisi.saturasi_oksigen,
+            users[i].kondisi.kadar_gula_darah,
+            users[i].kondisi.berat_badan,
+            users[i].kondisi.tinggi_badan,
+            users[i].kondisi.kadar_kolesterol,
+            users[i].kondisi.kadar_kolesterol_ldl,
+            users[i].kondisi.trombosit
+            );
+        }
+    }
+}
+
+void CSVtoArr(const char *filename, CSVRowHandler handler, void *target) {
+    FILE *file = fopen(filename, "r");
     if (!file) {
         perror("Gagal membuka file");
         exit(1);
     }
 
     char line[MAX_LINE_LEN];
-    fgets(line, sizeof(line), file); // Skip header
+    fgets(line, sizeof(line), file); // skip header
 
-    int idx = 0;
     while (fgets(line, sizeof(line), file)) {
-        int col = 0, charIdx = 0;
-        char temp[50] = "";
-        User user = {0};
-        int len = strlen(line);
-        line[len - 1] = '\0'; // Hapus newline
+        char fields[MAX_FIELD][MAX_COL_LEN] = {0};
+        int fieldIdx = 0, charIdx = 0;
 
-        for (int i = 0; i <= len; i++) {
-            if (line[i] == ',' || line[i] == '\0') {
-                temp[charIdx] = '\0';
-
-                switch (col) {
-                    case 0: user.identitas.id = atoi(temp); break;
-                    case 1: strcpy(user.identitas.username, temp); break;
-                    case 2: strcpy(user.identitas.password, temp); break;
-                    case 3: strcpy(user.identitas.role, temp); break;
-                    case 4: strcpy(user.identitas.riwayat_penyakit, temp); break;
-                    case 5: user.kondisi.suhu_tubuh = atof(temp); break;
-                    case 6: user.kondisi.tekanan_darah_sistolik = atoi(temp); break;
-                    case 7: user.kondisi.tekanan_darah_diastolik = atoi(temp); break;
-                    case 8: user.kondisi.detak_jantung= atoi(temp); break;
-                    case 9: user.kondisi.saturasi_oksigen = atof(temp); break;
-                    case 10: user.kondisi.kadar_gula_darah = atoi(temp); break;
-                    case 11: user.kondisi.berat_badan = atof(temp); break;
-                    case 12: user.kondisi.tinggi_badan = atoi(temp); break;
-                    case 13: user.kondisi.kadar_kolesterol = atoi(temp); break;
-                    case 14: user.kondisi.kadar_kolesterol_ldl = atoi(temp); break;
-                    case 15: user.kondisi.trombosit = atoi(temp); break;
-                }
-
-                col++;
+        for (int i = 0; ; i++) {
+            char c = line[i];
+            if (c == ',' || c == '\n' || c == '\0') {
+                fields[fieldIdx][charIdx] = '\0';
+                fieldIdx++;
                 charIdx = 0;
-                temp[0] = '\0';
+                if (c == '\n' || c == '\0') break;
             } else {
-                temp[charIdx++] = line[i];
+                if (charIdx < MAX_COL_LEN - 1) {
+                    fields[fieldIdx][charIdx++] = c;
+                }
             }
         }
 
-        users[idx++] = user;
+        handler(fields, fieldIdx, target);
     }
-
-    *jumlah_user = idx;
     fclose(file);
+}
+
+void handleUserRow(char fields[][MAX_COL_LEN], int count, void *target) {
+    ParseTarget *pt = (ParseTarget *)target;  // cast target ke struct kita
+    static int idx = 0;
+
+    User u;
+    u.identitas.id = atoi(fields[0]);
+    strcpy(u.identitas.username, fields[1]);
+    strcpy(u.identitas.password, fields[2]);
+    strcpy(u.identitas.role, fields[3]);
+    strcpy(u.identitas.riwayat_penyakit, fields[4]);
+    u.kondisi.suhu_tubuh = atof(fields[5]);
+    u.kondisi.tekanan_darah_sistolik = atoi(fields[6]);
+    u.kondisi.tekanan_darah_diastolik = atoi(fields[7]);
+    u.kondisi.detak_jantung = atoi(fields[8]);
+    u.kondisi.saturasi_oksigen = atof(fields[9]);
+    u.kondisi.kadar_gula_darah = atoi(fields[10]);
+    u.kondisi.berat_badan = atof(fields[11]);
+    u.kondisi.tinggi_badan = atoi(fields[12]);
+    u.kondisi.kadar_kolesterol = atoi(fields[13]);
+    u.kondisi.kadar_kolesterol_ldl = atoi(fields[14]);
+    u.kondisi.trombosit = atoi(fields[15]);
+
+    pt->arr[(*pt->jumlah)++] = u;
 }
