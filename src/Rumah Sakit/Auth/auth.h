@@ -12,6 +12,14 @@ typedef enum{
     EXIT
 } Pilihan;
 
+typedef enum{
+    DAFTARCHECKUP=1,
+    ANTRIANSAYA,
+    MINUMOBAT,
+    MINUMPENAWAR,
+    LOGOUT
+} PilihanPasien;
+
 #define MAX_USER 100
 #define MAX_LINE_LEN 1024
 #define MAX_FIELD 50
@@ -53,19 +61,46 @@ typedef struct {
     int *jumlah;
 } ParseTarget;
 
+void clearScreen();
+
 void labelRS();
-// Berisi label besar "RS K01-N" sebagai user interface
+// Menampilkan label besar "RS K01-N" sebagai user interface
+
+void labelPasien();
+// Menampilkan label besar "<Role> <Username>" sebagai user interface
 
 void labelMenu();
-// Menampilkan user interface menu
+// Menampilkan user interface menu awal
 
-void labelInput(Pilihan *pilihan);
+void labelMenuPasien();
+// Menampilkan user interface menu untuk pasien
+
+void labelMenuDokter();
+// Menampilkan user interface menu untuk dokter
+
+void labelMenuManager();
+// Menampilkan user interface menu untuk manager
+
+void labelInput();
 // Menampilkan menu dan input sebagai UI utama
 
-void login(User users[]);
+void login();
 // Procedure untuk login
 
-void registerpasien(User **users,int *jumlah_user);
+void logout();
+// Procedure untuk logout
+
+void registerpasien();
+// Procedure untuk register pasien
+
+void lamanPasien();
+// Halaman untuk pasien yang berhasil masuk ke akun
+
+void lamanDokter();
+// Halaman untuk dokter yang berhasil masuk ke akun
+
+void lamanManager();
+// Halaman untuk manager yang berhasil masuk ke akun
 
 void ArrtoCSV(const char *filename, CSVRowHandler handler, void *target);
 

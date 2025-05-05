@@ -10,3 +10,5 @@ id,username,password,role,riwayat_penyakit,suhu_tubuh,tekanan_darah_sistolik,tek
 9,user9,pass99,pasien,COVID-19,36.799999,114,74,61,94.599998,100,80.599998,173,152
 10,user10,pass110,pasien,Anemia,36.200001,103,87,65,96.599998,102,72.300003,184,150
 11,yaudah,IYAAA,pasien,,0.000000,0,0,0,0.000000,0,0.000000,0,0
+12,adit,tolongin,pasien,,0.000000,0,0,0,0.000000,0,0.000000,0,0
+13,a,a,pasien,,0.000000,0,0,0,0.000000,0,0.000000,0,0

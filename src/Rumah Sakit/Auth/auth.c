@@ -15,6 +15,13 @@ void labelRS(){
     printf("=====================================\n");
 }
 
+void labelPasien(){
+    extern User *user;
+    printf("=====================================\n");
+    printf("           %s %s      \n",user->identitas.role,user->identitas.username);
+    printf("=====================================\n");
+}
+
 void labelMenu(){
     printf("1. Login\n");
     printf("2. Register\n");
@@ -23,7 +30,17 @@ void labelMenu(){
     printf("\n");
 }
 
-void labelInput(Pilihan *pilihan){
+void labelMenuPasien(){
+    printf("1. Daftar Check-Up\n");
+    printf("2. Antrian Saya\n");
+    printf("3. Minum Obat\n");
+    printf("4. Minum Penawar\n");
+    printf("5. Logout\n");
+    printf("\n");
+}
+
+void labelInput(){
+    extern Pilihan pilihan;
     int input;
     int valid = 0;
 
@@ -44,11 +61,11 @@ void labelInput(Pilihan *pilihan){
 
         switch (input) {
             case 1: case 2: case 3:
-                *pilihan = input;
+                pilihan = input;
                 valid = 1;
                 break;
             case 4:
-                *pilihan = EXIT;
+                pilihan = EXIT;
                 valid = 1;
                 break;
             default:
@@ -57,24 +74,30 @@ void labelInput(Pilihan *pilihan){
         }
     }
 
-    char *opsi[] = {"", "LOGIN", "REGISTER", "LUPAPASSWORD"};
-    if (*pilihan != EXIT)
-        printf("\n>>> %s\n\n", opsi[*pilihan]);
+    char *opsi[] = {"", "LOGIN", "REGISTER", "LUPA PASSWORD"};
+    if (pilihan != EXIT)
+        printf("\n>>> %s\n\n", opsi[pilihan]);
 }
 
-void login(User users[]){
-    User user;int valid=0; char nama[50],role[50];
+void login(){
+    extern User *user; 
+    extern User *users;
+    extern int jumlah_user;
+    int valid=0;
+    char nama[50],role[50];
 
-    printf("Username: ");
-    scanf("%s", user.identitas.username);
-    strcpy(nama,user.identitas.username);
+    clearScreen();
+    printf("\nUsername: ");
+    scanf("%s", user->identitas.username);
+    strcpy(nama,user->identitas.username);
     printf("Password: ");
-    scanf("%s", user.identitas.password);
-    for (int i = 0; i < MAX_USER; i++) {
-        if (strcmp(users[i].identitas.username, user.identitas.username) == 0) {
-            if (strcmp(users[i].identitas.password, user.identitas.password) == 0) {
+    scanf("%s", user->identitas.password);
+    for (int i = 0; i < jumlah_user; i++) {
+        if (strcmp(users[i].identitas.username, user->identitas.username) == 0) {
+            if (strcmp(users[i].identitas.password, user->identitas.password) == 0) {
             valid = 1; 
             strcpy(role,users[i].identitas.role);
+            strcpy(user->identitas.role,role);
             break;
             }else{
                 printf("\nUsername atau password salah untuk pengguna yang bernama %s!\n\n",nama);
@@ -87,21 +110,31 @@ void login(User users[]){
         printf("\nTidak ada Manager, Dokter, atau pun Pasien yang bernama %s!\n\n",nama);
     }
     else if(valid==1)
-    {if(strcmpi(role,"pasien")==0){
-        printf("\nSelamat pagi %s! Ada keluhan apa?\n\n",nama);
-    }else{
-    printf("\nSelamat pagi %s %s! \n\n",role,nama);}}
+    {
+    printf("\nSelamat pagi %s %s! \n\n",role,nama);}
 }
 
-void registerpasien(User **users,int *jumlah_user){
-    User user;int format,valid=1;
+void logout(){
+    extern User *user;
+    if (user != NULL) {
+        free(user);     
+        user = NULL;    
+    }
+}
+
+void registerpasien(){
+    extern User *user;
+    extern User *users;
+    extern int jumlah_user;
+    int format,valid=1;
     
+    clearScreen();
     do{
     format=1;
     printf("Username: ");
-    scanf("%s", user.identitas.username);
-    for (int i = 0; user.identitas.username[i] != '\0'; i++) {
-        char c = user.identitas.username[i];
+    scanf("%s", user->identitas.username);
+    for (int i = 0; user->identitas.username[i] != '\0'; i++) {
+        char c = user->identitas.username[i];
         if (!((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z'))){
             format = 0;
             printf("Format username hanya boleh huruf! Ulangi\n");
@@ -110,30 +143,91 @@ void registerpasien(User **users,int *jumlah_user){
     }
     }while(!format);
 
-    for(int i=0;i<*jumlah_user;i++){
-        if(strcmpi((*users)[i].identitas.username,user.identitas.username)==0){
+    for(int i=0;i<jumlah_user;i++){
+        if(strcmpi((users)[i].identitas.username,user->identitas.username)==0){
             valid=0;
         }
     }
 
     if(!valid){
-        printf("Registrasi gagal! Pasien dengan nama %s sudah terdaftar.",user.identitas.username);
+        printf("Registrasi gagal! Pasien dengan nama %s sudah terdaftar.",user->identitas.username);
     }else{
-        *users = (User *)realloc(*users,(*jumlah_user+1) * sizeof(User));
-        if(*users==NULL){
+        users = (User *)realloc(users,(jumlah_user+1) * sizeof(User));
+        if(users==NULL){
             perror("gagal membuat array");
             exit(1);
         }else{
             printf("Password: ");
-            scanf("%s", user.identitas.password);
-            strcpy((*users)[*jumlah_user].identitas.username,user.identitas.username);
-            strcpy((*users)[*jumlah_user].identitas.password,user.identitas.password);
-            strcpy((*users)[*jumlah_user].identitas.role,"pasien");
-            (*jumlah_user)++;
-            ArrtoCSV("../../../data/user.csv",writeUsersToFile,NULL);
-            printf("Pasien %s berhasil ditambahkan!\n",user.identitas.username);
+            scanf("%s", user->identitas.password);
+            strcpy((users)[jumlah_user].identitas.username,user->identitas.username);
+            strcpy((users)[jumlah_user].identitas.password,user->identitas.password);
+            strcpy((users)[jumlah_user].identitas.role,"pasien");
+            jumlah_user++;
+            printf("Pasien %s berhasil ditambahkan!\n",user->identitas.username);
         }
     }
+}
+
+void lupaPassword(){
+
+}
+
+void lamanPasien(){
+    extern User *user;
+    extern PilihanPasien pilihanP;
+    int input;
+    int valid = 0;
+
+    while (!valid) {
+        clearScreen();
+        labelPasien();
+        printf("\nSelamat pagi %s! Ada keluhan apa?\n\n",user->identitas.username);
+        labelMenuPasien();
+        printf(">>> Masukkan pilihan (1-5): ");
+        scanf("%d", &input);
+        if (input != 1 && input != 2 && input != 3 && input != 4 && input != 5){
+            // input bukan angka
+            while(getchar() != '\n'); // flush input buffer
+            printf("\nInput tidak valid! Masukkan angka antara 1-5.");
+            printf("\nSilahkan enter untuk mengulang!\n");
+            getchar(); // tunggu enter
+            continue;
+        }
+
+        switch (input) {
+            case 1: case 2: case 3: case 4:
+                pilihanP = input;
+                valid = 1;
+                break;
+            case 5:
+                char c;
+                do{
+                    printf("Yakin mau logout? (y/n)\n");
+                    scanf(" %c",&c);
+                    if(c=='n' || c=='N'){
+                        lamanPasien();
+                    }
+                }while(c != 'y' && c != 'n' && c != 'Y' && c != 'N');
+                pilihanP = LOGOUT;
+                valid = 1;
+                break;
+            default:
+                printf("\nPilihan tidak valid! Silakan ulangi.\n");
+                getchar(); // tunggu enter
+        }
+    }
+
+    char *opsi[] = {"", "DAFTAR CHECK-UP", "ANTRIAN SAYA", "MINUM OBAT","MINUM PENAWAR"};
+    if (pilihanP != LOGOUT)
+        printf("\n>>> %s\n\n", opsi[pilihanP]);
+}
+
+void lamanManager(){
+
+}
+
+void lamanDokter(){
+
 }
 
 void ArrtoCSV(const char *filename, CSVRowHandler handler, void *target){
