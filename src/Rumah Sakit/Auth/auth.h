@@ -93,6 +93,9 @@ void logout();
 void registerpasien();
 // Procedure untuk register pasien
 
+void lupaPassword();
+// Procedur untuk user yang lupa password
+
 void lamanPasien();
 // Halaman untuk pasien yang berhasil masuk ke akun
 

@@ -41,8 +41,8 @@ int main(){
             case REGISTER: 
                 registerpasien();
                 break;
-            case LUPAPASSWORD: 
-                // fungsi lupa password nanti
+            case LUPAPASSWORD:
+                lupaPassword();
                 break;
         }
 
